@@ -67,12 +67,6 @@ class MemoTextTableViewController: UITableViewController, TextMemoCellDelegate {
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt: IndexPath) -> [UITableViewRowAction]? {
         let more = UITableViewRowAction(style: .default, title: "🗑") { action, index in
-            do {
-                try FileManager.default.removeItem(atPath: self.texts[editActionsForRowAt[1]])
-            }
-            catch let error as NSError {
-                print("Ooops! Something went wrong: \(error)")
-            }
             self.texts.remove(at: editActionsForRowAt[1])
             UserDefaults.standard.set(self.texts, forKey: "MemoText")
             self.textTabView.reloadData()

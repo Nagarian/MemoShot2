@@ -72,6 +72,12 @@ class MemoSoundTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt: IndexPath) -> [UITableViewRowAction]? {
         let more = UITableViewRowAction(style: .default, title: "🗑") { action, index in
+            do {
+                try FileManager.default.removeItem(atPath: self.sounds[editActionsForRowAt[1]].absoluteString)
+            }
+            catch let error as NSError {
+                print("Ooops! Something went wrong: \(error)")
+            }
             self.sounds.remove(at: editActionsForRowAt[1])
             let arr = self.sounds.map {v in v.absoluteString }
             UserDefaults.standard.set(arr, forKey: "MemoSound")

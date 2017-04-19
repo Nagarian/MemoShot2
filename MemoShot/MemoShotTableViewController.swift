@@ -10,12 +10,20 @@ import UIKit
 
 class MemoShotTableViewController: UITableViewController,UINavigationControllerDelegate, UIImagePickerControllerDelegate {
 
-    private var images : [UIImage] = []
+    private var images : [UIImage?] = []
+    private var imagesName: [String] = []
     var imagePicker: UIImagePickerController?
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        let arr = UserDefaults.standard.stringArray(forKey: "MemoShot") ?? [String]()
+        for str in arr {
+            
+            if let img = try? UIImage(data: try Data(contentsOf: URL(string: str)!)) {
+                images.append(img)
+            }
+        }
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -52,7 +60,19 @@ class MemoShotTableViewController: UITableViewController,UINavigationControllerD
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            if let data = UIImagePNGRepresentation(pickedImage) {
+                let fileManager = FileManager.default
+                let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+                let documentDirectory = urls[0] as URL
+                let filename = documentDirectory.appendingPathComponent("MemoShot-" + UUID().uuidString + ".png")
+                imagesName.append(filename.absoluteString)
+                
+                UserDefaults.standard.set(imagesName, forKey: "MemoShot")
+                try? data.write(to: filename)
+            }
+            
             images.append(pickedImage)
+            
             tabView.reloadData()
         }
         
@@ -72,7 +92,15 @@ class MemoShotTableViewController: UITableViewController,UINavigationControllerD
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt: IndexPath) -> [UITableViewRowAction]? {
         let more = UITableViewRowAction(style: .default, title: "🗑") { action, index in
+            do {
+                try FileManager.default.removeItem(atPath: self.imagesName[editActionsForRowAt[1]])
+            }
+            catch let error as NSError {
+                print("Ooops! Something went wrong: \(error)")
+            }
             self.images.remove(at: editActionsForRowAt[1])
+            self.imagesName.remove(at: editActionsForRowAt[1])
+            UserDefaults.standard.set(self.imagesName, forKey: "MemoShot")
             self.tabView.reloadData()
         }
         
